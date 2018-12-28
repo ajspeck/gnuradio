@@ -39,6 +39,13 @@ parameters:
     dtype: string
     default: ''
     hide: ${ ('part' if key == '' else 'none') }
+-   id: proxy_forward
+    label: Forward to Proxy
+    dtype: enum
+    default: 'False'
+    options: ['True', 'False']
+    option_labels: ['Yes', 'No']
+    hide: ${ ('part' if proxy_forward == 'True' else 'none') }
 
 inputs:
 -   domain: stream
@@ -47,7 +54,6 @@ inputs:
 
 templates:
     imports: from gnuradio import zeromq
-    make: zeromq.pub_sink(${type.itemsize}, ${vlen}, ${address}, ${timeout}, ${pass_tags},
-        ${hwm}, ${key})
+    make: zeromq.pub_sink(${type.itemsize}, ${vlen}, ${address}, ${timeout}, ${pass_tags}, ${hwm}, ${key}, ${proxy_forward})
         
 file_format: 1

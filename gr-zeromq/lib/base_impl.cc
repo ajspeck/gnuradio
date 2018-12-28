@@ -64,7 +64,7 @@ namespace gr {
     }
 
 
-    base_sink_impl::base_sink_impl(int type, size_t itemsize, size_t vlen, char *address, int timeout, bool pass_tags, int hwm, std::string key)
+    base_sink_impl::base_sink_impl(int type, size_t itemsize, size_t vlen, char *address, int timeout, bool pass_tags, int hwm, std::string key, bool forward_to_proxy)
         : base_impl(type, itemsize, vlen, timeout, pass_tags, key)
     {
       /* Set high watermark */
@@ -77,8 +77,8 @@ namespace gr {
 #endif
       }
 
-      /* Bind */
-      d_socket->bind(address);
+      /* Bind or connect depending on whether a proxy is used*/
+      forward_to_proxy ? d_socket->connect(address) : d_socket->bind(address);
     }
 
     int
