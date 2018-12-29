@@ -1,0 +1,416 @@
+options:
+  parameters:
+    category: '[GRC Hier Blocks]'
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: top_block
+    max_nouts: '0'
+    placement: (0,0)
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    title: pub_proxy_example
+    window_size: '[4096, 4096]'
+  states:
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: samp_rate
+  id: variable
+  parameters:
+    value: '32000'
+  states:
+    coordinate: [184, 12]
+    rotation: 0
+    state: enabled
+- name: analog_sig_source_x_0
+  id: analog_sig_source_x
+  parameters:
+    amp: '1'
+    freq: '1000'
+    offset: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    coordinate: [16, 212.0]
+    rotation: 0
+    state: true
+- name: analog_sig_source_x_1
+  id: analog_sig_source_x
+  parameters:
+    amp: '1'
+    freq: '2000'
+    offset: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    coordinate: [16, 348.0]
+    rotation: 0
+    state: true
+- name: analog_sig_source_x_2
+  id: analog_sig_source_x
+  parameters:
+    amp: '1'
+    freq: '3000'
+    offset: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    coordinate: [16, 484.0]
+    rotation: 0
+    state: true
+- name: analog_sig_source_x_3
+  id: analog_sig_source_x
+  parameters:
+    amp: '1'
+    freq: '4000'
+    offset: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    coordinate: [16, 628.0]
+    rotation: 0
+    state: true
+- name: blocks_throttle_0
+  id: blocks_throttle
+  parameters:
+    ignoretag: 'True'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    coordinate: [192, 244.0]
+    rotation: 0
+    state: true
+- name: blocks_throttle_1
+  id: blocks_throttle
+  parameters:
+    ignoretag: 'True'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    coordinate: [192, 380.0]
+    rotation: 0
+    state: true
+- name: blocks_throttle_2
+  id: blocks_throttle
+  parameters:
+    ignoretag: 'True'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    coordinate: [176, 516.0]
+    rotation: 0
+    state: true
+- name: blocks_throttle_3
+  id: blocks_throttle
+  parameters:
+    ignoretag: 'True'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    coordinate: [176, 660.0]
+    rotation: 0
+    state: true
+- name: qtgui_time_sink_x_0
+  id: qtgui_time_sink_x
+  parameters:
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: blue
+    color10: blue
+    color2: green
+    color3: black
+    color4: cyan
+    color5: magenta
+    color6: yellow
+    color7: dark red
+    color8: dark green
+    color9: Dark Blue
+    ctrlpanel: 'False'
+    entags: 'True'
+    grid: 'False'
+    label1: Signal 1
+    label10: Signal 10
+    label2: Signal 2
+    label3: Signal 3
+    label4: Signal 4
+    label5: Signal 5
+    label6: Signal 6
+    label7: Signal 7
+    label8: Signal 8
+    label9: Signal 9
+    legend: 'True'
+    marker1: '1'
+    marker10: '1'
+    marker2: '1'
+    marker3: '1'
+    marker4: '1'
+    marker5: '1'
+    marker6: '1'
+    marker7: '1'
+    marker8: '1'
+    marker9: '1'
+    name: '"1kHz signal"'
+    nconnections: '1'
+    size: '1024'
+    srate: samp_rate
+    stemplot: 'False'
+    style1: '1'
+    style10: '1'
+    style2: '1'
+    style3: '1'
+    style4: '1'
+    style5: '1'
+    style6: '1'
+    style7: '1'
+    style8: '1'
+    style9: '1'
+    tr_chan: '0'
+    tr_delay: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: complex
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    ylabel: Amplitude
+    ymax: '1'
+    ymin: '-1'
+    yunit: '""'
+  states:
+    coordinate: [872, 180.0]
+    rotation: 0
+    state: true
+- name: qtgui_time_sink_x_1
+  id: qtgui_time_sink_x
+  parameters:
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: blue
+    color10: blue
+    color2: green
+    color3: black
+    color4: cyan
+    color5: magenta
+    color6: yellow
+    color7: dark red
+    color8: dark green
+    color9: Dark Blue
+    ctrlpanel: 'False'
+    entags: 'True'
+    grid: 'False'
+    label1: Signal 1
+    label10: Signal 10
+    label2: Signal 2
+    label3: Signal 3
+    label4: Signal 4
+    label5: Signal 5
+    label6: Signal 6
+    label7: Signal 7
+    label8: Signal 8
+    label9: Signal 9
+    legend: 'True'
+    marker1: '1'
+    marker10: '1'
+    marker2: '1'
+    marker3: '1'
+    marker4: '1'
+    marker5: '1'
+    marker6: '1'
+    marker7: '1'
+    marker8: '1'
+    marker9: '1'
+    name: '"2kHz Signal"'
+    nconnections: '1'
+    size: '1024'
+    srate: samp_rate
+    stemplot: 'False'
+    style1: '1'
+    style10: '1'
+    style2: '1'
+    style3: '1'
+    style4: '1'
+    style5: '1'
+    style6: '1'
+    style7: '1'
+    style8: '1'
+    style9: '1'
+    tr_chan: '0'
+    tr_delay: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: complex
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    ylabel: Amplitude
+    ymax: '1'
+    ymin: '-1'
+    yunit: '""'
+  states:
+    coordinate: [872, 316.0]
+    rotation: 0
+    state: true
+- name: zeromq_pub_proxy_0
+  id: zeromq_pub_proxy
+  parameters:
+    address_in: tcp://127.0.0.1:5001
+    address_out: tcp://127.0.0.1:5002
+  states:
+    coordinate: [512, 68.0]
+    rotation: 0
+    state: true
+- name: zeromq_pub_sink_0
+  id: zeromq_pub_sink
+  parameters:
+    address: '''tcp://127.0.0.1:5001'''
+    hwm: '-1'
+    key: '''1kHz_filter'''
+    pass_tags: 'False'
+    proxy_forward: 'True'
+    timeout: '100'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate: [376, 212.0]
+    rotation: 0
+    state: true
+- name: zeromq_pub_sink_1
+  id: zeromq_pub_sink
+  parameters:
+    address: '''tcp://127.0.0.1:5001'''
+    hwm: '-1'
+    key: '''2kHz_filter_key'''
+    pass_tags: 'False'
+    proxy_forward: 'True'
+    timeout: '100'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate: [384, 348.0]
+    rotation: 0
+    state: true
+- name: zeromq_pub_sink_2
+  id: zeromq_pub_sink
+  parameters:
+    address: '''tcp://127.0.0.1:5001'''
+    hwm: '-1'
+    key: '''3kHz_filter'''
+    pass_tags: 'False'
+    proxy_forward: 'True'
+    timeout: '100'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate: [360, 492.0]
+    rotation: 0
+    state: true
+- name: zeromq_pub_sink_3
+  id: zeromq_pub_sink
+  parameters:
+    address: '''tcp://127.0.0.1:5001'''
+    hwm: '-1'
+    key: '''4kHz_filter_key'''
+    pass_tags: 'False'
+    proxy_forward: 'True'
+    timeout: '100'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate: [368, 636.0]
+    rotation: 0
+    state: true
+- name: zeromq_sub_source_0
+  id: zeromq_sub_source
+  parameters:
+    address: tcp://127.0.0.1:5002
+    hwm: '-1'
+    key: '''1kHz_filter'''
+    pass_tags: 'False'
+    timeout: '100'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate: [648, 180.0]
+    rotation: 0
+    state: true
+- name: zeromq_sub_source_1
+  id: zeromq_sub_source
+  parameters:
+    address: tcp://127.0.0.1:5002
+    hwm: '-1'
+    key: '''2kHz_filter'''
+    pass_tags: 'False'
+    timeout: '100'
+    type: complex
+    vlen: '1'
+  states:
+    coordinate: [640, 316.0]
+    rotation: 0
+    state: true
+
+connections:
+- [analog_sig_source_x_0, '0', blocks_throttle_0, '0']
+- [analog_sig_source_x_1, '0', blocks_throttle_1, '0']
+- [analog_sig_source_x_2, '0', blocks_throttle_2, '0']
+- [analog_sig_source_x_3, '0', blocks_throttle_3, '0']
+- [blocks_throttle_0, '0', zeromq_pub_sink_0, '0']
+- [blocks_throttle_1, '0', zeromq_pub_sink_1, '0']
+- [blocks_throttle_2, '0', zeromq_pub_sink_2, '0']
+- [blocks_throttle_3, '0', zeromq_pub_sink_3, '0']
+- [zeromq_sub_source_0, '0', qtgui_time_sink_x_0, '0']
+- [zeromq_sub_source_1, '0', qtgui_time_sink_x_1, '0']
+
+metadata:
+  file_format: 1
