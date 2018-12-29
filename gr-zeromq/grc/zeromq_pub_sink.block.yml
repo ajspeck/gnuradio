@@ -45,7 +45,7 @@ parameters:
     default: 'False'
     options: ['True', 'False']
     option_labels: ['Yes', 'No']
-    hide: ${ ('part' if proxy_forward == 'True' else 'none') }
+    hide: ${ ('part' if proxy_forward == 'False' else 'none') }
 
 inputs:
 -   domain: stream

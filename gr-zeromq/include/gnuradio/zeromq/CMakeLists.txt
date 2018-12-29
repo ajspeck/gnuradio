@@ -23,6 +23,7 @@
 install(FILES
   api.h
   pub_sink.h
+  pub_proxy.h
   pub_msg_sink.h
   sub_source.h
   sub_msg_source.h

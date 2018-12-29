@@ -19,6 +19,7 @@
 
 install(FILES
     zeromq_pub_sink.block.yml
+    zeromq_pub_proxy.block.yml
     zeromq_pub_msg_sink.block.yml
     zeromq_sub_source.block.yml
     zeromq_sub_msg_source.block.yml

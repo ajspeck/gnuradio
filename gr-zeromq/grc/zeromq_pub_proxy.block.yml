@@ -1,0 +1,18 @@
+id: zeromq_pub_proxy
+label: ZMQ PUB Proxy
+category: '[Core]/ZeroMQ Interfaces'
+
+parameters:
+-   id: address_in
+    label: Address In
+    dtype: string
+
+-   id: address_out
+    label: Address Out
+    dtype: string
+
+templates:
+    imports: from gnuradio import zeromq
+    make: zeromq.pub_proxy(${address_in}, ${address_out})
+        
+file_format: 1

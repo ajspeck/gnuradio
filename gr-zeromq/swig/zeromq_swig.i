@@ -29,6 +29,7 @@
 
 %{
 #include "gnuradio/zeromq/pub_sink.h"
+#include "gnuradio/zeromq/pub_proxy.h"
 #include "gnuradio/zeromq/pub_msg_sink.h"
 #include "gnuradio/zeromq/push_sink.h"
 #include "gnuradio/zeromq/push_msg_sink.h"
@@ -43,6 +44,7 @@
 %}
 
 %include "gnuradio/zeromq/pub_sink.h"
+%include "gnuradio/zeromq/pub_proxy.h"
 %include "gnuradio/zeromq/pub_msg_sink.h"
 %include "gnuradio/zeromq/push_sink.h"
 %include "gnuradio/zeromq/push_msg_sink.h"
@@ -56,6 +58,7 @@
 %include "gnuradio/zeromq/req_msg_source.h"
 
 GR_SWIG_BLOCK_MAGIC2(zeromq, pub_sink);
+GR_SWIG_BLOCK_MAGIC2(zeromq, pub_proxy);
 GR_SWIG_BLOCK_MAGIC2(zeromq, pub_msg_sink);
 GR_SWIG_BLOCK_MAGIC2(zeromq, push_sink);
 GR_SWIG_BLOCK_MAGIC2(zeromq, push_msg_sink);
