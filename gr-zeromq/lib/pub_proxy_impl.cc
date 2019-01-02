@@ -58,7 +58,11 @@ namespace gr {
       d_proxy_thread = boost::thread{zmq::proxy, (void*)*d_socket_in, (void*)*d_socket_out, nullptr};
     }
 
-    pub_proxy_impl::~pub_proxy_impl(){}
+    pub_proxy_impl::~pub_proxy_impl(){
+      delete d_context;
+      delete d_socket_in;
+      delete d_socket_out;
+    }
 
   } /* namespace zeromq */
 } /* namespace gr */
