@@ -1,5 +1,6 @@
 id: blocks_interleaved_short_to_complex
 label: IShort To Complex
+flags: [ python, cpp ]
 
 parameters:
 -   id: vector_input
@@ -9,8 +10,7 @@ parameters:
     options: ['False', 'True']
     option_labels: ['No', 'Yes']
     option_attributes:
-        vlen: ['1', '2']
-    hide: ${ 'part' if vlen == 1 else 'none' }
+        vlen: [1, 2]
 -   id: swap
     label: Swap
     dtype: enum
@@ -33,5 +33,15 @@ templates:
     make: blocks.interleaved_short_to_complex(${vector_input}, ${swap})
     callbacks:
     - set_swap(${swap})
+
+cpp_templates:
+    includes: ['#include <gnuradio/blocks/interleaved_short_to_complex.h>']
+    declarations: 'blocks::interleaved_short_to_complex::sptr ${id};'
+    make: 'this->${id} = blocks::interleaved_short_to_complex::make(${vector_input}, ${swap});'
+    callbacks:
+    - set_swap(${swap})
+    translations:
+        'True': 'true'
+        'False': 'false'
 
 file_format: 1

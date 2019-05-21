@@ -26,6 +26,8 @@ from ._templates import MakoTemplates
 from .. import utils
 from ..base import Element
 
+from ._build import build_params
+
 
 DEFAULT_CODE = '''\
 """
@@ -81,13 +83,12 @@ class EPyBlock(Block):
     label = 'Python Block'
     documentation = {'': DOC}
 
-    parameters_data = [dict(
-        label='Code',
-        id='_source_code',
-        dtype='_multiline_python_external',
-        value=DEFAULT_CODE,
-        hide='part',
-    )]
+    parameters_data = build_params(
+        params_raw=[
+            dict(label='Code', id='_source_code', dtype='_multiline_python_external',
+                 default=DEFAULT_CODE, hide='part')
+        ], have_inputs=True, have_outputs=True, flags=Block.flags, block_id=key
+    )
     inputs_data = []
     outputs_data = []
 
@@ -229,13 +230,13 @@ class EPyModule(Block):
         to set parameters of other blocks in your flowgraph.
     """)}
 
-    parameters_data = [dict(
-        label='Code',
-        id='source_code',
-        dtype='_multiline_python_external',
-        value='# this module will be imported in the into your flowgraph',
-        hide='part',
-    )]
+    parameters_data = build_params(
+        params_raw=[
+            dict(label='Code', id='source_code', dtype='_multiline_python_external',
+                 default='# this module will be imported in the into your flowgraph',
+                 hide='part')
+        ], have_inputs=False, have_outputs=False, flags=Block.flags, block_id=key
+    )
 
     templates = MakoTemplates(
         imports='import ${ id }  # embedded python module',

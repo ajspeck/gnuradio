@@ -30,8 +30,6 @@ include(GrPython)
 
 find_package(Qt5Widgets QUIET)
 set(QT_FOUND ${Qt5Widgets_FOUND})
-set(QT_LIBRARIES ${Qt5Widgets_LIBRARIES})
-set(QT_INCLUDE_DIRS ${Qt5Widgets_INCLUDE_DIRS})
 
 GR_PYTHON_CHECK_MODULE("PyQt5" PyQt5 True PYQT5_FOUND)
 
@@ -59,12 +57,6 @@ GR_REGISTER_COMPONENT("gr-qtgui" ENABLE_GR_QTGUI
     ${qt_gui_python_deps}
 )
 
-GR_SET_GLOBAL(GR_QTGUI_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib
-    ${CMAKE_CURRENT_BINARY_DIR}/lib
-)
-
 SET(GR_PKG_QTGUI_EXAMPLES_DIR ${GR_PKG_DATA_DIR}/examples/qt-gui)
 
 ########################################################################
@@ -80,12 +72,14 @@ add_subdirectory(lib)
 add_subdirectory(docs)
 add_subdirectory(examples/c++)
 if(ENABLE_PYTHON)
-    add_subdirectory(grc)
     add_subdirectory(swig)
     add_subdirectory(python/qtgui)
     add_subdirectory(examples)
     add_subdirectory(apps)
 endif(ENABLE_PYTHON)
+if(ENABLE_GRC)
+    add_subdirectory(grc)
+endif(ENABLE_GRC)
 
 ########################################################################
 # Create Pkg Config File

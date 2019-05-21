@@ -1,4 +1,4 @@
-# Copyright 2012 Free Software Foundation, Inc.
+# Copyright 2012,2019 Free Software Foundation, Inc.
 #
 # This file is part of GNU Radio
 #
@@ -32,16 +32,7 @@ GR_REGISTER_COMPONENT("gr-trellis" ENABLE_GR_TRELLIS
     ENABLE_GR_ANALOG
     ENABLE_GR_BLOCKS
     ENABLE_GR_DIGITAL
-)
-
-GR_SET_GLOBAL(GR_TRELLIS_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_BINARY_DIR}/include
-)
-
-GR_SET_GLOBAL(GR_TRELLIS_SWIG_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/swig
-)
+    )
 
 SET(GR_PKG_TRELLIS_EXAMPLES_DIR ${GR_PKG_DATA_DIR}/examples/trellis)
 
@@ -61,8 +52,10 @@ if(ENABLE_PYTHON)
     add_subdirectory(python/trellis)
     add_subdirectory(examples/python)
     add_subdirectory(examples/grc)
-    add_subdirectory(grc)
 endif(ENABLE_PYTHON)
+if(ENABLE_GRC)
+    add_subdirectory(grc)
+endif(ENABLE_GRC)
 
 ########################################################################
 # Create Pkg Config File

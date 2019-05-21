@@ -38,10 +38,6 @@ GR_REGISTER_COMPONENT("gr-uhd" ENABLE_GR_UHD
 )
 message(STATUS "  UHD Version: ${UHD_VERSION}")
 
-GR_SET_GLOBAL(GR_UHD_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
 SET(GR_PKG_UHD_EXAMPLES_DIR ${GR_PKG_DATA_DIR}/examples/uhd)
 
 ########################################################################
@@ -59,10 +55,12 @@ add_subdirectory(examples/c++)
 if(ENABLE_PYTHON)
     add_subdirectory(swig)
     add_subdirectory(python/uhd)
-    add_subdirectory(grc)
     add_subdirectory(apps)
     add_subdirectory(examples/grc)
 endif(ENABLE_PYTHON)
+if(ENABLE_GRC)
+    add_subdirectory(grc)
+endif(ENABLE_GRC)
 
 ########################################################################
 # Create Pkg Config File

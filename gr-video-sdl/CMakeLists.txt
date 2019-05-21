@@ -34,11 +34,6 @@ GR_REGISTER_COMPONENT("gr-video-sdl" ENABLE_GR_VIDEO_SDL
     ENABLE_GNURADIO_RUNTIME
 )
 
-GR_SET_GLOBAL(GR_VIDEO_SDL_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_BINARY_DIR}/include
-)
-
 ########################################################################
 # Begin conditional configuration
 ########################################################################
@@ -50,10 +45,12 @@ if(ENABLE_GR_VIDEO_SDL)
 add_subdirectory(include/gnuradio/video_sdl)
 add_subdirectory(lib)
 if(ENABLE_PYTHON)
-    add_subdirectory(grc)
     add_subdirectory(swig)
     add_subdirectory(python/video_sdl)
 endif(ENABLE_PYTHON)
+if(ENABLE_GRC)
+    add_subdirectory(grc)
+endif(ENABLE_GRC)
 
 ########################################################################
 # Create Pkg Config File

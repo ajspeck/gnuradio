@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2015,2016 Free Software Foundation, Inc.
+ * Copyright 2015,2016,2019 Free Software Foundation, Inc.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -380,7 +380,21 @@ for (int row = 0; row < ROWS; row++) { /* count the entries in the table */ \
 } \
 max_lut_arraysize *= 360; /* 360 bits per table entry */ \
 max_lut_arraysize /= pbits; /* spread over all parity bits */ \
-max_lut_arraysize += 2; /* 1 for the size at the start of the array, one as buffer */ \
+for (int i = 0; i < FRAME_SIZE_NORMAL; i++) { \
+  ldpc_lut_index[i] = 1; \
+} \
+for (int row = 0; row < ROWS; row++) { \
+  for (int n = 0; n < 360; n++) { \
+    for (int col = 1; col <= TABLE_NAME[row][0]; col++) { \
+      int current_pbit = (TABLE_NAME[row][col] + (n * q)) % pbits; \
+      ldpc_lut_index[current_pbit]++; \
+      if (ldpc_lut_index[current_pbit] > max_index) { \
+        max_index = ldpc_lut_index[current_pbit]; \
+      } \
+    } \
+  } \
+} \
+max_lut_arraysize += 1 + (max_index - max_lut_arraysize); /* 1 for the size at the start of the array */ \
 \
 /* Allocate a 2D Array with pbits * max_lut_arraysize
  * while preserving two-subscript access
@@ -417,6 +431,7 @@ for (int row = 0; row < ROWS; row++) { \
       int pbits = (frame_size_real + Xp) - nbch;    //number of parity bits
       int q = q_val;
       int max_lut_arraysize = 0;
+      int max_index = 0;
 
       if (frame_size_type == FECFRAME_NORMAL) {
         if (code_rate == C1_4) {
@@ -662,6 +677,9 @@ for (int row = 0; row < ROWS; row++) { \
           p[i_p] = pbit;
         }
 
+        for (int j = 1; j < plen; j++) {
+          p[j] ^= p[j-1];
+        }
         if (P != 0) {
           puncture = 0;
           for (int j = 0; j < plen; j += P) {
@@ -677,10 +695,7 @@ for (int row = 0; row < ROWS; row++) { \
               b[index++] = p[j];
             }
           }
-          p = &out[nbch];
-        }
-        for (int j = 1; j < (plen - Xp); j++) {
-          p[j] ^= p[j-1];
+          p = &out[i + nbch];
         }
         if (signal_constellation == MOD_128APSK) {
           for (int j = 0; j < 6; j++) {

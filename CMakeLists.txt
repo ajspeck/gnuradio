@@ -27,9 +27,10 @@ endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 ########################################################################
 # Make sure this version matches ${GR_CMAKE_MIN_VERSION} (a variable can't be
 # used here).
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.8)
 project(gnuradio CXX C)
 enable_testing()
+option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 # Make sure our local CMake Modules path comes first
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
@@ -64,6 +65,9 @@ set(CLANG_MIN_VERSION "3.4.0")
 set(APPLECLANG_MIN_VERSION "500")
 set(MSVC_MIN_VERSION "1800")
 
+# Enable generation of compile_commands.json for code completion engines
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 ########################################################################
 # Configure CMake policies
 ########################################################################
@@ -73,13 +77,13 @@ if(POLICY CMP0026)
     cmake_policy(SET CMP0026 NEW)
 endif()
 if(POLICY CMP0043)
-    cmake_policy(SET CMP0043 OLD)
+    cmake_policy(SET CMP0043 NEW)
 endif()
 if(POLICY CMP0045)
-    cmake_policy(SET CMP0045 OLD)
+    cmake_policy(SET CMP0045 NEW)
 endif()
 if(POLICY CMP0046)
-    cmake_policy(SET CMP0046 OLD)
+    cmake_policy(SET CMP0046 NEW)
 endif()
 
 ########################################################################
@@ -145,7 +149,7 @@ ELSEIF(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     SET(CMAKE_CXX_STANDARD 11)
 ELSE()
-    message(warning "C++ standard could not be set because compiler is not GNU, Clang or MSVC.")
+    message(WARNING "C++ standard could not be set because compiler is not GNU, Clang or MSVC.")
 ENDIF()
 
 IF(CMAKE_C_COMPILER_ID STREQUAL "GNU")
@@ -155,13 +159,7 @@ ELSEIF(CMAKE_C_COMPILER_ID MATCHES "Clang")
 ELSEIF(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
     SET(CMAKE_C_STANDARD 11)
 ELSE()
-    message(warning "C standard could not be set because compiler is not GNU, Clang or MSVC.")
-ENDIF()
-
-# if cmake version is < 3.1, explicitly set C standard to use.
-IF(${CMAKE_VERSION} VERSION_LESS "3.1")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c${CMAKE_C_STANDARD}")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++${CMAKE_CXX_STANDARD}")
+    message(WARNING "C standard could not be set because compiler is not GNU, Clang or MSVC.")
 ENDIF()
 
 ########################################################################
@@ -236,6 +234,8 @@ IF(MSVC)
     IF(MSVC_VERSION LESS "${MSVC_MIN_VERSION}")
         MESSAGE(FATAL_ERROR "MSVC Versions < minimum version ${MSVC_MIN_VERSION}")
     ENDIF()
+    SET(cmake_c_compiler_version ${MSVC_VERSION})
+    SET(cmake_cxx_compiler_version ${MSVC_VERSION})
 ELSE()
     execute_process(COMMAND ${CMAKE_C_COMPILER} --version
             OUTPUT_VARIABLE cmake_c_compiler_version)
@@ -258,9 +258,19 @@ string(REPLACE "\n" " \\n" COMPILER_INFO ${COMPILER_INFO})
 # Install directories
 ########################################################################
 include(GrPlatform) #define LIB_SUFFIX
+
+# Install our Cmake modules into $prefix/lib/cmake/gnuradio
+# See "Package Configuration Files" on page:
+#    http://www.cmake.org/Wiki/CMake/Tutorials/Packaging
+
+if(NOT CMAKE_MODULES_DIR)
+  SET(CMAKE_MODULES_DIR lib${LIB_SUFFIX}/cmake)
+endif(NOT CMAKE_MODULES_DIR)
+
 SET(GR_RUNTIME_DIR     bin CACHE PATH "Path to install all binaries")
 SET(GR_LIBRARY_DIR     lib${LIB_SUFFIX} CACHE PATH "Path to install libraries")
 SET(GR_INCLUDE_DIR     include CACHE PATH "Path to install header files")
+SET(GR_CMAKE_DIR       ${CMAKE_MODULES_DIR}/gnuradio)
 SET(GR_DATA_DIR        share CACHE PATH "Base location for data")
 SET(GR_PKG_DATA_DIR    ${GR_DATA_DIR}/${CMAKE_PROJECT_NAME} CACHE PATH "Path to install package data")
 SET(GR_DOC_DIR         ${GR_DATA_DIR}/doc CACHE PATH "Path to install documentation")
@@ -292,9 +302,6 @@ else(ENABLE_PERFORMANCE_COUNTERS)
   SET(GR_PERFORMANCE_COUNTERS False)
   message(STATUS "NO PERF COUNTERS")
 endif(ENABLE_PERFORMANCE_COUNTERS)
-
-OPTION(ENABLE_STATIC_LIBS "Enable building of static libraries" OFF)
-message(STATUS "Building Static Libraries: ${ENABLE_STATIC_LIBS}")
 
 ########################################################################
 # Variables replaced when configuring the package config files
@@ -384,14 +391,15 @@ message(STATUS "")
 message(STATUS "Configuring VOLK support...")
 
 OPTION(ENABLE_INTERNAL_VOLK "Enable internal VOLK only" ON)
-unSET(VOLK_FOUND)
+UNSET(Volk_FOUND)
 if(NOT ENABLE_INTERNAL_VOLK)
     find_package(Volk)
-    if(NOT VOLK_FOUND)
+    set(GR_VOLK_LIB "Volk::volk")
+    if(NOT Volk_FOUND)
         message(STATUS "  External VOLK not found; checking internal.")
     endif()
 endif()
-if(NOT VOLK_FOUND)
+if(NOT Volk_FOUND)
     find_file(INTREE_VOLK_FOUND
         volk/volk_common.h
         PATHS ${CMAKE_CURRENT_SOURCE_DIR}/volk/include
@@ -423,7 +431,7 @@ if(NOT VOLK_FOUND)
         ${CMAKE_CURRENT_BINARY_DIR}/volk/include
     )
 
-    SET(VOLK_LIBRARIES volk)
+    set(GR_VOLK_LIB "volk")
 
     SET(VOLK_INSTALL_LIBRARY_DIR ${CMAKE_INSTALL_PREFIX}/lib)
     SET(VOLK_INSTALL_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include)
@@ -433,12 +441,12 @@ else()
 
     get_filename_component(VOLK_INSTALL_LIBRARY_DIR "${VOLK_LIBRARIES}" DIRECTORY)
     SET(VOLK_INSTALL_INCLUDE_DIR ${VOLK_INCLUDE_DIRS})
-endif(NOT VOLK_FOUND)
+endif(NOT Volk_FOUND)
 
 message(STATUS "  Override with -DENABLE_INTERNAL_VOLK=ON/OFF")
 
 # Handle logging
-find_package(Log4cpp REQUIRED)
+find_package(LOG4CPP REQUIRED)
 
 ########################################################################
 # Distribute the README file
@@ -451,12 +459,13 @@ install(
 ########################################################################
 # The following dependency libraries are needed by all gr modules:
 ########################################################################
-list(APPEND GR_TEST_TARGET_DEPS volk gnuradio-runtime)
 list(APPEND GR_TEST_PYTHON_DIRS
     ${CMAKE_BINARY_DIR}/gnuradio-runtime/python
     ${CMAKE_SOURCE_DIR}/gnuradio-runtime/python
     ${CMAKE_BINARY_DIR}/gnuradio-runtime/swig
 )
+
+
 
 # Note that above we put the binary gnuradio-runtime/python directory
 # before the source directory. This is due to a quirk with ControlPort
@@ -474,6 +483,7 @@ add_definitions(${MPLIB_DEFINITIONS})
 ########################################################################
 add_subdirectory(docs)
 add_subdirectory(gnuradio-runtime)
+add_subdirectory(grc)
 add_subdirectory(gr-blocks)
 add_subdirectory(gr-fec)
 add_subdirectory(gr-fft)
@@ -492,7 +502,6 @@ add_subdirectory(gr-video-sdl)
 add_subdirectory(gr-vocoder)
 add_subdirectory(gr-wavelet)
 add_subdirectory(gr-zeromq)
-add_subdirectory(grc)
 
 # Defining GR_CTRLPORT for gnuradio/config.h
 if(ENABLE_GR_CTRLPORT)
@@ -508,14 +517,19 @@ if(ENABLE_GR_CTRLPORT)
   endif(CTRLPORT_BACKENDS GREATER 0)
 endif(ENABLE_GR_CTRLPORT)
 
-# Install our Cmake modules into $prefix/lib/cmake/gnuradio
-# See "Package Configuration Files" on page:
-#    http://www.cmake.org/Wiki/CMake/Tutorials/Packaging
 
-configure_file(
+# Install all other cmake files into same directory
+file(GLOB cmake_others "cmake/Modules/*.cmake")
+list(REMOVE_ITEM cmake_others
+    "${CMAKE_SOURCE_DIR}/cmake/Modules/FindGnuradio.cmake"
+)
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
   ${CMAKE_SOURCE_DIR}/cmake/Modules/GnuradioConfig.cmake.in
   ${CMAKE_BINARY_DIR}/cmake/Modules/GnuradioConfig.cmake
-@ONLY)
+  INSTALL_DESTINATION ${CMAKE_MODULES_DIR}/gnuradio
+  )
 
 configure_file(
   ${CMAKE_SOURCE_DIR}/cmake/Modules/GnuradioConfigVersion.cmake.in
@@ -527,15 +541,6 @@ SET(cmake_configs
   ${CMAKE_BINARY_DIR}/cmake/Modules/GnuradioConfigVersion.cmake
 )
 
-if(NOT CMAKE_MODULES_DIR)
-  SET(CMAKE_MODULES_DIR lib${LIB_SUFFIX}/cmake)
-endif(NOT CMAKE_MODULES_DIR)
-
-# Install all other cmake files into same directory
-file(GLOB cmake_others "cmake/Modules/*.cmake")
-list(REMOVE_ITEM cmake_others
-    "${CMAKE_SOURCE_DIR}/cmake/Modules/FindGnuradio.cmake"
-)
 
 install(
   FILES ${cmake_configs} ${cmake_others}

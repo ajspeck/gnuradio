@@ -32,14 +32,6 @@ GR_REGISTER_COMPONENT("gr-blocks" ENABLE_GR_BLOCKS
     ENABLE_GNURADIO_RUNTIME
 )
 
-GR_SET_GLOBAL(GR_BLOCKS_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_BINARY_DIR}/lib
-    ${CMAKE_CURRENT_BINARY_DIR}/include
-    ${VOLK_INCLUDE_DIRS}
-)
-
 ########################################################################
 # Begin conditional configuration
 ########################################################################
@@ -56,10 +48,12 @@ add_subdirectory(lib)
 if(ENABLE_PYTHON)
      add_subdirectory(python/blocks)
      add_subdirectory(swig)
-     add_subdirectory(grc)
      add_subdirectory(docs)
      add_subdirectory(examples)
 endif(ENABLE_PYTHON)
+if(ENABLE_GRC)
+    add_subdirectory(grc)
+endif(ENABLE_GRC)
 
 ########################################################################
 # Create Pkg Config File

@@ -64,8 +64,8 @@ parameters:
 -   id: sync
     label: Sync
     dtype: enum
-    options: [sync, pc_clock, '']
-    option_labels: [unknown PPS, PC Clock, don't sync]
+    options: [sync, pc_clock, none]
+    option_labels: [Unknown PPS, PC Clock, No Sync]
     hide: ${'$'}{ 'none' if sync else 'part'}
 -   id: clock_rate
     label: Clock Rate (Hz)
@@ -114,7 +114,6 @@ inputs:
 -   domain: message
     id: command
     optional: true
-    hide: ${'$'}{hide_cmd_port}
 % if sourk == 'source':
 
 outputs:
@@ -140,7 +139,7 @@ templates:
             uhd.stream_args(
                 cpu_format="${'$'}{type}",
                 ${'%'} if otw:
-                otw_format=${'$'}{otw},
+                otw_format="${'$'}{otw}",
                 ${'%'} endif
                 ${'%'} if stream_args:
                 args=${'$'}{stream_args},
@@ -155,16 +154,48 @@ templates:
             ${'$'}{len_tag_name},
             ${'%'} endif
         )
+        % for m in range(max_mboards):
+        ${'%'} if context.get('num_mboards')() > ${m}:
+        ${'%'} if context.get('sd_spec${m}')():
+        self.${'$'}{id}.set_subdev_spec(${'$'}{${'sd_spec' + str(m)}}, ${m})
+        ${'%'} endif
+        ${'%'} if context.get('time_source${m}')():
+        self.${'$'}{id}.set_time_source(${'$'}{${'time_source' + str(m)}}, ${m})
+        ${'%'} endif
+        ${'%'} if context.get('clock_source${m}')():
+        self.${'$'}{id}.set_clock_source(${'$'}{${'clock_source' + str(m)}}, ${m})
+        ${'%'} endif
+        ${'%'} endif
+        % endfor
         % for n in range(max_nchan):
         ${'%'} if context.get('nchan')() > ${n}:
         self.${'$'}{id}.set_center_freq(${'$'}{${'center_freq' + str(n)}}, ${n})
+        % if sourk == 'source':
+        ${'%'} if context.get('rx_agc${n}')() == 'Enabled':
+        self.${'$'}{id}.set_rx_agc(True, ${n})
+        ${'%'} elif context.get('rx_agc${n}')() == 'Disabled':
+        self.${'$'}{id}.set_rx_agc(False, ${n})
+        ${'%'} endif
+        ${'%'} if context.get('rx_agc${n}')() != 'Enabled':
         ${'%'} if bool(eval(context.get('norm_gain' + '${n}')())):
         self.${'$'}{id}.set_normalized_gain(${'$'}{${'gain' + str(n)}}, ${n})
         ${'%'} else:
         self.${'$'}{id}.set_gain(${'$'}{${'gain' + str(n)}}, ${n})
         ${'%'} endif
+        ${'%'} endif
+        % else:
+        ${'%'} if bool(eval(context.get('norm_gain' + '${n}')())):
+        self.${'$'}{id}.set_normalized_gain(${'$'}{${'gain' + str(n)}}, ${n})
+        ${'%'} else:
+        self.${'$'}{id}.set_gain(${'$'}{${'gain' + str(n)}}, ${n})
+        ${'%'} endif
+        % endif
+        ${'%'} if context.get('ant${n}')():
         self.${'$'}{id}.set_antenna(${'$'}{${'ant' + str(n)}}, ${n})
+        ${'%'} endif
+        ${'%'} if context.get('bw${n}')():
         self.${'$'}{id}.set_bandwidth(${'$'}{${'bw' + str(n)}}, ${n})
+        ${'%'} endif
         ${'%'} if context.get('show_lo_controls')():
         self.${'$'}{id}.set_lo_source(${'$'}{${'lo_source' + str(n)}}, uhd.ALL_LOS, ${n})
         self.${'$'}{id}.set_lo_export_enabled(${'$'}{${'lo_export' + str(n)}}, uhd.ALL_LOS, ${n})
@@ -179,12 +210,21 @@ templates:
         self.${'$'}{id}.set_time_unknown_pps(uhd.time_spec())
         ${'%'} elif sync == 'pc_clock':
         self.${'$'}{id}.set_time_now(uhd.time_spec(time.time()), uhd.ALL_MBOARDS)
+        ${'%'} else:
+        # No synchronization enforced.
         ${'%'} endif
     callbacks:
     -   set_samp_rate(${'$'}{samp_rate})
     % for n in range(max_nchan):
     -   set_center_freq(${'$'}{${'center_freq' + str(n)}}, ${n})
-    -   self.${'$'}{id}.set_${'$'}{'normalized_' if bool(eval(norm_gain${n})) else ''}gain(${'$'}{${'gain' + str(n)}}, ${n})
+    % if sourk == 'source':
+    -   ${'$'}{'set_rx_agc(True, ${n})' if context.get('rx_agc${n}')() == 'Enabled' else ''}
+    -   ${'$'}{'set_rx_agc(False, ${n})' if context.get('rx_agc${n}')() == 'Disabled' else ''}
+    -   ${'$'}{'set_gain(${'$'}{${'gain' + str(n)}}, ${n})' if not bool(eval(context.get('norm_gain${n}')())) and context.get('rx_agc${n}')() != 'Enabled' else ''}
+    -   ${'$'}{'set_normalized_gain(${'$'}{${'gain' + str(n)}}, ${n})' if bool(eval(context.get('norm_gain${n}')())) and context.get('rx_agc${n}')() != 'Enabled' else ''}
+    % else:
+    -   self.${'$'}{id}.set_${'$'}{'normalized_' if bool(eval(context.get('norm_gain${n}')())) else ''}gain(${'$'}{${'gain' + str(n)}}, ${n})
+    % endif
     -   ${'$'}{'set_lo_source(' + lo_source${n} + ', uhd.ALL_LOS, ${n})' if show_lo_controls else ''}
     -   ${'$'}{'set_lo_export_enabled(' + lo_export${n} + ', uhd.ALL_LOS, ${n})' if show_lo_controls else ''}
     -   set_antenna(${'$'}{${'ant' + str(n)}}, ${n})
@@ -278,12 +318,26 @@ PARAMS_TMPL = """
     dtype: real
     default: '0'
     hide: ${'$'}{ 'none' if (nchan > ${n}) else 'all' }
+% if sourk == 'source':
+-   id: rx_agc${n}
+    label: 'Ch${n}: AGC'
+    category: RF Options
+    dtype: string
+    default: 'Default'
+    options: ['Default', 'Disabled', 'Enabled']
+    option_labels: [Default, Disabled, Enabled]
+    hide: ${'$'}{ 'none' if (nchan > ${n}) else 'all' }
+% endif
 -   id: gain${n}
     label: 'Ch${n}: Gain Value'
     category: RF Options
     dtype: float
     default: '0'
+% if sourk == 'source':
+    hide: ${'$'}{ 'none' if nchan > ${n} and rx_agc${n} != 'Enabled' else 'all' }
+% else:
     hide: ${'$'}{ 'none' if nchan > ${n} else 'all' }
+% endif
 -   id: norm_gain${n}
     label: 'Ch${n}: Gain Type'
     category: RF Options
@@ -291,7 +345,11 @@ PARAMS_TMPL = """
     default: 'False'
     options: ['False', 'True']
     option_labels: [Absolute (dB), Normalized]
+% if sourk == 'source':
+    hide: ${'$'}{ 'all' if nchan <= ${n} or rx_agc${n} == 'Enabled' else ('none' if bool(eval('norm_gain' + str(${n}))) else 'part')}
+% else:
     hide: ${'$'}{ 'all' if nchan <= ${n} else ('none' if bool(eval('norm_gain' + str(${n}))) else 'part')}
+% endif
 -   id: ant${n}
     label: 'Ch${n}: Antenna'
     category: RF Options
@@ -341,17 +399,6 @@ PARAMS_TMPL = """
 % endif
 """
 
-SHOW_CMD_PORT_PARAM = """
--   id: hide_cmd_port
-    label: Show Command Port
-    category: Advanced
-    dtype: enum
-    default: 'False'
-    options: ['False', 'True']
-    option_labels: ['Yes', 'No']
-    hide: part
-"""
-
 SHOW_LO_CONTROLS_PARAM = """
 -   id: show_lo_controls
     label: Show LO Controls
@@ -397,7 +444,6 @@ if __name__ == '__main__':
             parse_tmpl(PARAMS_TMPL, n=n, sourk=sourk)
             for n in range(MAX_NUM_CHANNELS)
         ])
-        params += SHOW_CMD_PORT_PARAM
         params += SHOW_LO_CONTROLS_PARAM
         if sourk == 'sink':
             params += TSBTAG_PARAM

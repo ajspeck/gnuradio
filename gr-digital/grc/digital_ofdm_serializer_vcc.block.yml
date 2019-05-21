@@ -1,12 +1,13 @@
 id: digital_ofdm_serializer_vcc
 label: OFDM Serializer
+flags: [ python, cpp ]
 
 parameters:
 -   id: fft_len
     label: FFT length
     dtype: int
     default: fft_len
-    hide: ${ 'part' if vlen == 1 else 'none' }
+    hide: ${ 'part' if fft_len == 1 else 'none' }
 -   id: occupied_carriers
     label: Occupied Carriers
     dtype: raw
@@ -47,5 +48,22 @@ templates:
     imports: from gnuradio import digital
     make: digital.ofdm_serializer_vcc(${fft_len}, ${occupied_carriers}, ${len_tag_key},
         ${packet_len_tag_key}, ${symbols_skipped}, ${carr_offset_key}, ${input_is_shifted})
+
+cpp_templates:
+    includes: ['#include <gnuradio/digital/ofdm_serializer_vcc.h>']
+    declarations: 'digital::ofdm_serializer_vcc::sptr ${id};'
+    make: |-
+        this->${id} = digital::ofdm_serializer_vcc::make(
+            ${fft_len},
+            ${occupied_carriers},
+            ${len_tag_key},
+            ${packet_len_tag_key},
+            ${symbols_skipped},
+            ${carr_offset_key},
+            ${input_is_shifted});
+    link: ['gnuradio-digital']
+    translations:
+        'True': 'true'
+        'False': 'false'
 
 file_format: 1

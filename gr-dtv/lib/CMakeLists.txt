@@ -18,29 +18,9 @@
 # Boston, MA 02110-1301, USA.
 
 ########################################################################
-# Setup the include and linker paths
-########################################################################
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${GR_DTV_INCLUDE_DIRS}
-    ${GR_FILTER_INCLUDE_DIRS}
-    ${GR_ANALOG_INCLUDE_DIRS}
-    ${GR_FEC_INCLUDE_DIRS}
-    ${GNURADIO_RUNTIME_INCLUDE_DIRS}
-    ${VOLK_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIRS}
-)
-
-link_directories(${Boost_LIBRARY_DIRS})
-
-if(ENABLE_GR_CTRLPORT)
-  ADD_DEFINITIONS(-DGR_CTRLPORT)
-endif(ENABLE_GR_CTRLPORT)
-
-########################################################################
 # Setup library
 ########################################################################
-list(APPEND dtv_sources
+add_library(gnuradio-dtv
   atsc/atsc_deinterleaver_impl.cc
   atsc/atsc_depad_impl.cc
   atsc/atsc_derandomizer_impl.cc
@@ -100,35 +80,49 @@ list(APPEND dtv_sources
   catv/catv_trellis_enc_bb_impl.cc
 )
 
-list(APPEND dtv_libs
+target_link_libraries(gnuradio-dtv PUBLIC
     gnuradio-runtime
     gnuradio-analog
     gnuradio-filter
     gnuradio-fec
-    ${VOLK_LIBRARIES}
-)
+    ${GR_VOLK_LIB}
+    )
+
+target_include_directories(gnuradio-dtv
+  PUBLIC
+  $<INSTALL_INTERFACE:include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+  )
 
 include (CheckCCompilerFlag)
 if (MSVC)
-	# 64-bit MSVC always supports SSE2
-	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-		set(SSE2_SUPPORTED true)
-	else ()
-		CHECK_C_COMPILER_FLAG ("/arch:SSE2" SSE2_SUPPORTED)
-	endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    # 64-bit MSVC always supports SSE2
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(SSE2_SUPPORTED true)
+    else()
+        check_c_compiler_flag("/arch:SSE2" SSE2_SUPPORTED)
+    endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 else ()
-	CHECK_C_COMPILER_FLAG ("-msse2" SSE2_SUPPORTED)
+    # The "correct" way to test this would be to run
+    # check_c_compiler_flag("-msse2")
+    # ...but that's not reliable, in particular, on Clang and ARM, it will
+    # return TRUE when it shouldn't. Hence, we compile this snippet
+    # manually.
+    check_c_source_compiles(
+        "#include <emmintrin.h>\nint main(){__m128i m0, m1, m2; m0 = _mm_add_epi8(m1, m2);}"
+        SSE2_SUPPORTED
+    )
 endif(MSVC)
 
 if(SSE2_SUPPORTED)
-	if (NOT MSVC)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
-	else ()
-		if (CMAKE_SIZEOF_VOID_P EQUAL 4)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
-		endif ()
-	endif ()
-    ADD_DEFINITIONS(-DDTV_SSE2)
+    if(NOT MSVC)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
+    else()
+        if (CMAKE_SIZEOF_VOID_P EQUAL 4)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
+        endif ()
+    endif()
+    target_compile_definitions(gnuradio-dtv PRIVATE -DDTV_SSE2)
 endif(SSE2_SUPPORTED)
 
 #Add Windows DLL resource file if using MSVC
@@ -140,11 +134,11 @@ if(MSVC)
         ${CMAKE_CURRENT_BINARY_DIR}/gnuradio-dtv.rc
     @ONLY)
 
-    list(APPEND dtv_sources
+    target_sources(gnuradio-dtv PRIVATE
         ${CMAKE_CURRENT_BINARY_DIR}/gnuradio-dtv.rc
     )
 endif(MSVC)
 
-add_library(gnuradio-dtv SHARED ${dtv_sources})
-target_link_libraries(gnuradio-dtv ${dtv_libs})
-GR_LIBRARY_FOO(gnuradio-dtv)
+if(BUILD_SHARED_LIBS)
+  GR_LIBRARY_FOO(gnuradio-dtv)
+endif()

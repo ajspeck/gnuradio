@@ -34,12 +34,7 @@ GR_REGISTER_COMPONENT("gr-fft" ENABLE_GR_FFT
     Boost_FOUND
     ENABLE_GNURADIO_RUNTIME
     ENABLE_GR_BLOCKS
-    FFTW3F_FOUND
-)
-
-GR_SET_GLOBAL(GR_FFT_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    FFTW3f_FOUND
 )
 
 ########################################################################
@@ -55,8 +50,10 @@ add_subdirectory(lib)
 if(ENABLE_PYTHON)
     add_subdirectory(swig)
     add_subdirectory(python/fft)
-    add_subdirectory(grc)
 endif(ENABLE_PYTHON)
+if(ENABLE_GRC)
+    add_subdirectory(grc)
+endif(ENABLE_GRC)
 add_subdirectory(docs)
 
 ########################################################################

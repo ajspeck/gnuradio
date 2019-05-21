@@ -37,11 +37,6 @@ GR_REGISTER_COMPONENT("gr-channels" ENABLE_GR_CHANNELS
     ENABLE_GR_ANALOG
 )
 
-GR_SET_GLOBAL(GR_CHANNELS_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
 SET(GR_PKG_CHANNELS_EXAMPLES_DIR ${GR_PKG_DATA_DIR}/examples/channels)
 
 ########################################################################
@@ -57,9 +52,11 @@ add_subdirectory(lib)
 if(ENABLE_PYTHON)
     add_subdirectory(swig)
     add_subdirectory(python/channels)
-    add_subdirectory(grc)
     add_subdirectory(examples)
 endif(ENABLE_PYTHON)
+if(ENABLE_GRC)
+    add_subdirectory(grc)
+endif(ENABLE_GRC)
 add_subdirectory(docs)
 
 ########################################################################

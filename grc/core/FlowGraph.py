@@ -64,7 +64,7 @@ class FlowGraph(Element):
 
     def imports(self):
         """
-        Get a set of all import statements in this flow graph namespace.
+        Get a set of all import statements (Python) in this flow graph namespace.
 
         Returns:
             a list of import statements
@@ -73,7 +73,7 @@ class FlowGraph(Element):
 
     def get_variables(self):
         """
-        Get a list of all variables in this flow graph namespace.
+        Get a list of all variables (Python) in this flow graph namespace.
         Exclude parameterized variables.
 
         Returns:
@@ -103,7 +103,7 @@ class FlowGraph(Element):
         """Iterate over custom code block ID and Source"""
         for block in self.iter_enabled_blocks():
             if block.key == 'epy_module':
-                yield block.name, block.params[1].get_value()
+                yield block.name, block.params['source_code'].get_value()
 
     def iter_enabled_blocks(self):
         """
@@ -375,9 +375,6 @@ class FlowGraph(Element):
                 self.new_block(block_id='_dummy', missing_block_id=block_id, **block_data)
             )
 
-            if isinstance(block, blocks.DummyBlock):
-                print('Block id "%s" not found' % block_id)
-
             block.import_data(**block_data)
 
         self.rewrite()  # evaluate stuff like nports before adding connections
@@ -422,6 +419,14 @@ class FlowGraph(Element):
                 'Connection between {}({}) and {}({}) could not be made.\n\t{}'.format(
                     src_blk_id, src_port_id, snk_blk_id, snk_port_id, e))
             had_connect_errors = True
+
+        for block in self.blocks:
+            if block.is_dummy_block :
+                block.rewrite()      # Make ports visible
+                # Flowgraph errors depending on disabled blocks are not displayed
+                # in the error dialog box
+                # So put a messsage into the Property window of the dummy block
+                block.add_error_message('Block id "{}" not found.'.format(block.key))
 
         self.rewrite()  # global rewrite
         return had_connect_errors

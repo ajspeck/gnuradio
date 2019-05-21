@@ -4,10 +4,8 @@ label: POLAR Encoder Definition
 parameters:
 -   id: is_packed
     label: Packed Bits
-    dtype: enum
+    dtype: bool
     default: 'False'
-    options: ['False', 'True']
-    option_labels: ['No', 'Yes']
 -   id: ndim
     label: Parallelism
     dtype: enum
@@ -49,9 +47,9 @@ templates:
         ${num_info_bits}, ${frozen_bit_positions}, ${frozen_bit_values}, ${is_packed})),\
         range(0, ${dim1})))
         % else:
-        self.${id} = ${id} = list(map((lambda b: map((lambda\
-        a: fec.polar_encoder.make(${block_size}, ${num_info_bits}, ${frozen_bit_positions},\
-        ${frozen_bit_values}, ${is_packed})), range(0, ${dim2}))), range(0, ${dim1}))\)
+        self.${id} = ${id} = list(map((lambda b: map((lambda a: \
+        fec.polar_encoder.make(${block_size}, ${num_info_bits}, ${frozen_bit_positions},\
+        ${frozen_bit_values}, ${is_packed})), range(0, ${dim2}))), range(0, ${dim1})))
         % endif
 
 file_format: 1

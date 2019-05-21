@@ -1,6 +1,7 @@
 % if not generate_options.startswith('hb'):
 <%
 from sys import version_info
+from gnuradio import eng_notation
 python_version = version_info.major
 %>\
 % if python_version == 2:
@@ -26,7 +27,6 @@ python_version = version_info.major
 % if flow_graph.get_option('description'):
 # Description: ${flow_graph.get_option('description')}
 % endif
-# Generated: ${generated_time}
 # GNU Radio version: ${version}
 ##################################################
 
@@ -282,7 +282,7 @@ gr.io_signaturev(${len(io_sigs)}, ${len(io_sigs)}, [${', '.join(size_strs)}])\
 ########################################################
 <%def name="make_default(type_, param)">
     % if type_ == 'eng_float':
-eng_notation.num_to_str(${param.templates.render('make')})
+eng_notation.num_to_str(float(${param.templates.render('make')}))
     % else:
 ${param.templates.render('make')}
     % endif
@@ -312,7 +312,7 @@ def argument_parser():
 
         default = param.templates.render('make')
         if type_ == 'eng_float':
-            default = eng_notation.num_to_str(default)
+            default = '"' + eng_notation.num_to_str(float(default)) + '"'
         # FIXME:
         if type_ == 'string':
             type_ = 'str'
@@ -348,7 +348,7 @@ def main(top_block_cls=${class_name}, options=None):
     tb.start(${flow_graph.get_option('max_nouts') or ''})
     % endif
     % if flow_graph.get_option('qt_qss_theme'):
-    tb.setStyleSheetFromFile(${ flow_graph.get_option('qt_qss_theme') })
+    tb.setStyleSheetFromFile("${ flow_graph.get_option('qt_qss_theme') }")
     % endif
     tb.show()
 

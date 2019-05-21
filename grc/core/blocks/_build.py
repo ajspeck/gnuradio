@@ -17,10 +17,8 @@
 
 from __future__ import absolute_import
 
-import collections
 import itertools
 import re
-import six
 
 from ..Constants import ADVANCED_PARAM_TAB
 from ..utils import to_list
@@ -33,7 +31,7 @@ from ._templates import MakoTemplates
 
 def build(id, label='', category='', flags='', documentation='',
           value=None, asserts=None,
-          parameters=None, inputs=None, outputs=None, templates=None, **kwargs):
+          parameters=None, inputs=None, outputs=None, templates=None, cpp_templates=None, **kwargs):
     block_id = id
 
     cls = type(str(block_id), (Block,), {})
@@ -42,7 +40,7 @@ def build(id, label='', category='', flags='', documentation='',
     cls.label = label or block_id.title()
     cls.category = [cat.strip() for cat in category.split('/') if cat.strip()]
 
-    cls.flags = Flags(to_list(flags))
+    cls.flags = Flags(flags)
     if re.match(r'options$|variable|virtual', block_id):
         cls.flags.set(Flags.NOT_DSP, Flags.DISABLE_BYPASS)
 
@@ -50,10 +48,10 @@ def build(id, label='', category='', flags='', documentation='',
 
     cls.asserts = [_single_mako_expr(a, block_id) for a in to_list(asserts)]
 
-    cls.inputs_data = _build_ports(inputs, 'sink') if inputs else []
-    cls.outputs_data = _build_ports(outputs, 'source') if outputs else []
-    cls.parameters_data = _build_params(parameters or [],
-                                        bool(cls.inputs_data), bool(cls.outputs_data), cls.flags, block_id)
+    cls.inputs_data = build_ports(inputs, 'sink') if inputs else []
+    cls.outputs_data = build_ports(outputs, 'source') if outputs else []
+    cls.parameters_data = build_params(parameters or [],
+                                       bool(cls.inputs_data), bool(cls.outputs_data), cls.flags, block_id)
     cls.extra_data = kwargs
 
     templates = templates or {}
@@ -63,6 +61,17 @@ def build(id, label='', category='', flags='', documentation='',
         callbacks=templates.get('callbacks', []),
         var_make=templates.get('var_make', ''),
     )
+
+    cpp_templates = cpp_templates or {}
+    cls.cpp_templates = MakoTemplates(
+        includes=cpp_templates.get('includes', ''),
+        make=cpp_templates.get('make', ''),
+        callbacks=cpp_templates.get('callbacks', []),
+        var_make=cpp_templates.get('var_make', ''),
+        link=cpp_templates.get('link', []),
+        translations=cpp_templates.get('translations', []),
+        declarations=cpp_templates.get('declarations', ''),
+    )
     # todo: MakoTemplates.compile() to check for errors
 
     cls.value = _single_mako_expr(value, block_id)
@@ -70,7 +79,7 @@ def build(id, label='', category='', flags='', documentation='',
     return cls
 
 
-def _build_ports(ports_raw, direction):
+def build_ports(ports_raw, direction):
     ports = []
     port_ids = set()
     stream_port_ids = itertools.count()
@@ -88,7 +97,7 @@ def _build_ports(ports_raw, direction):
     return ports
 
 
-def _build_params(params_raw, have_inputs, have_outputs, flags, block_id):
+def build_params(params_raw, have_inputs, have_outputs, flags, block_id):
     params = []
 
     def add_param(**data):
@@ -106,9 +115,9 @@ def _build_params(params_raw, have_inputs, have_outputs, flags, block_id):
 
         if have_outputs:
             add_param(id='minoutbuf', name='Min Output Buffer', dtype='int',
-                      hide='part', value='0', category=ADVANCED_PARAM_TAB)
+                      hide='part', default='0', category=ADVANCED_PARAM_TAB)
             add_param(id='maxoutbuf', name='Max Output Buffer', dtype='int',
-                      hide='part', value='0', category=ADVANCED_PARAM_TAB)
+                      hide='part', default='0', category=ADVANCED_PARAM_TAB)
 
     base_params_n = {}
     for param_data in params_raw:
@@ -127,7 +136,7 @@ def _build_params(params_raw, have_inputs, have_outputs, flags, block_id):
         base_params_n[param_id] = param_data_ext
 
     add_param(id='comment', name='Comment', dtype='_multiline', hide='part',
-              value='', category=ADVANCED_PARAM_TAB)
+              default='', category=ADVANCED_PARAM_TAB)
     return params
 
 
@@ -149,4 +158,3 @@ def _validate_option_attributes(param_data, block_id):
             if key in dir(str):
                 del param_data['option_attributes'][key]
                 send_warning('{} - option_attribute "{}" overrides str, ignoring'.format(block_id, key))
-
